@@ -56,7 +56,7 @@ endfunction(parabix_add_pablo_src)
 
 include_directories(${PARABIX_INCLUDE})
 
-link_directories("build/lib")
+link_directories("${PARABIX_LIB}")
 
 parabix_add_pablo_src(json-fmt-pablo "pablo/json_fmt.pablo")
 
@@ -68,34 +68,6 @@ add_executable(json-fmt
 add_dependencies(json-fmt json-fmt-pablo)
 
 target_link_libraries(json-fmt
-        parabix_codegen
-        parabix_kernel_unicode
-        parabix_re_parse
-        parabix_fileselect
-        parabix_kernel_util
-        parabix_re_toolchain
-        parabix_grep
-        parabix_objcache
-        parabix_re_ucd
-        parabix_idisa
-        parabix_pablo
-        parabix_re_unicode
-        parabix_kernel_basis
-        parabix_pablo_bixnum
-        parabix_testing
-        parabix_kernel_core
-        parabix_pablo_parse
-        parabix_toolchain
-        parabix_kernel_io
-        parabix_re_adt
-        parabix_unicode_core
-        parabix_kernel_pipeline
-        parabix_re_alphabet
-        parabix_unicode_data
-        parabix_kernel_scan
-        parabix_re_cc
-        parabix_unicode_utf
-        parabix_kernel_streamutils
-        parabix_re_compile
+        parabix_framework
         ${Boost_LIBRARIES}
         ${REQ_LLVM_LIBRARIES})

@@ -13,7 +13,7 @@ std::string InputText;
 } // namespace cli
 
 
-static cl::opt<std::string, true> __unused InputTextOpt( // NOLINT(cert-err58-cpp)
+static cl::opt<std::string, true> InputTextOpt( // NOLINT(cert-err58-cpp)
         cl::Positional,
         cl::location(cli::InputText),
         cl::desc("<json>"),
