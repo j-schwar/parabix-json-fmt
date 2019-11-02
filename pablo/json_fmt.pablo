@@ -1,0 +1,60 @@
+kernel Split :: [<i1>[1] in] -> [<i1>[2] out] {
+    mask = Repeat(1, 0x5555555555555555)
+    out[0] = in[0] & mask
+    out[1] = InFile(~out[0])
+}
+
+type JsonLex = <i1>[7] {
+    openers,
+    closers,
+    comma,
+    colon,
+    openQuote,
+    closeQuote,
+    ws
+}
+
+type AnalyzedJson = <i1>[4] {
+    openers,
+    closers,
+    otherLineStarts,
+    insertLFBefore
+}
+
+kernel AnalyzeJson :: [JsonLex lex] -> [AnalyzedJson out] {
+    valueMask = InclusiveSpan(lex.openQuote, lex.closeQuote)
+
+    # mask off any control tokens which apear in values
+    openers = lex.openers & ~valueMask
+    out.openers = openers
+
+    closers = lex.closers & ~valueMask
+    out.closers = closers
+
+    comma = lex.comma & ~valueMask
+
+    out.otherLineStarts = Advance(openers) | Advance(comma)
+    out.insertLFBefore = Advance(openers) | Advance(comma) | closers
+}
+
+kernel InsertLF :: [<i1>[1] mask, <i1>[8] basis] -> [<i1>[8] out] {
+    out[0] = basis[0]
+    out[1] = basis[1] | ~mask[0]
+    out[2] = basis[2]
+    out[3] = basis[3] | ~mask[0]
+    out[4] = basis[4]
+    out[5] = basis[5]
+    out[6] = basis[6]
+    out[7] = basis[7]
+}
+
+kernel InsertSpace :: [<i1>[1] mask, <i1>[8] basis] -> [<i1>[8] out] {
+    out[0] = basis[0]
+    out[1] = basis[1]
+    out[2] = basis[2]
+    out[3] = basis[3]
+    out[4] = basis[4]
+    out[5] = basis[5] | ~mask[0]
+    out[6] = basis[6]
+    out[7] = basis[7]
+}
