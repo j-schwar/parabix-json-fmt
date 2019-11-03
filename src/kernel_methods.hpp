@@ -8,6 +8,7 @@
 #include "kernel/lex_json.hpp"
 #include "kernel/indent_bixnum.hpp"
 #include "kernel/split.hpp"
+#include "kernel/analyze_json.hpp"
 
 #include <kernel/pipeline/pipeline_builder.h>
 #include <kernel/io/source_kernel.h>
@@ -79,18 +80,7 @@ inline kernel::StreamSet *Split(PipelineBuilder P, kernel::StreamSet *stream) {
 inline std::tuple<kernel::StreamSet *, kernel::StreamSet *> AnalyzeJson(PipelineBuilder P, kernel::StreamSet *lex) {
     auto const lfData = P->CreateStreamSet(1, 1);
     auto const indentData = P->CreateStreamSet(2, 1);
-    P->CreateKernelCall<pablo::PabloSourceKernel>(
-        PABLO_PARSER,
-        PABLO_SOURCE,
-        "AnalyzeJson",
-        kernel::Bindings {
-            kernel::Binding {"lex", lex}
-        },
-        kernel::Bindings {
-            kernel::Binding {"lf", lfData},
-            kernel::Binding {"indent", indentData}
-        }
-    );
+    P->CreateKernelCall<kernel::AnalyzeJsonKernel>(lex, lfData, indentData);
     return std::make_tuple(lfData, indentData);
 }
 
