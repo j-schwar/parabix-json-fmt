@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cassert>
+#include <tuple>
 #include <vector>
 
 #include "global.hpp"
@@ -78,15 +79,15 @@ inline kernel::StreamSet *Split(PipelineBuilder P, kernel::StreamSet *stream) {
 
     auto const compressedSplit = P->CreateStreamSet(2, 1);
     P->CreateKernelCall<pablo::PabloSourceKernel>(
-            PABLO_PARSER,
-            PABLO_SOURCE,
-            "Split",
-            kernel::Bindings {
-                    kernel::Binding {"in", compressed}
-            },
-            kernel::Bindings {
-                    kernel::Binding {"out", compressedSplit}
-            }
+        PABLO_PARSER,
+        PABLO_SOURCE,
+        "Split",
+        kernel::Bindings {
+            kernel::Binding {"in", compressed}
+        },
+        kernel::Bindings {
+            kernel::Binding {"out", compressedSplit}
+        }
     );
 
     auto const split = P->CreateStreamSet(2, 1);
@@ -95,20 +96,39 @@ inline kernel::StreamSet *Split(PipelineBuilder P, kernel::StreamSet *stream) {
 }
 
 
-inline kernel::StreamSet *AnalyzeJson(PipelineBuilder P, kernel::StreamSet *lex) {
-    auto const analyzedJson = P->CreateStreamSet(4, 1);
+inline std::tuple<kernel::StreamSet *, kernel::StreamSet *> AnalyzeJson(PipelineBuilder P, kernel::StreamSet *lex) {
+    auto const lfData = P->CreateStreamSet(1, 1);
+    auto const indentData = P->CreateStreamSet(2, 1);
     P->CreateKernelCall<pablo::PabloSourceKernel>(
-            PABLO_PARSER,
-            PABLO_SOURCE,
-            "AnalyzeJson",
-            kernel::Bindings {
-                    kernel::Binding {"lex", lex}
-            },
-            kernel::Bindings {
-                    kernel::Binding {"out", analyzedJson}
-            }
+        PABLO_PARSER,
+        PABLO_SOURCE,
+        "AnalyzeJson",
+        kernel::Bindings {
+            kernel::Binding {"lex", lex}
+        },
+        kernel::Bindings {
+            kernel::Binding {"lf", lfData},
+            kernel::Binding {"indent", indentData}
+        }
     );
-    return analyzedJson;
+    return std::make_tuple(lfData, indentData);
+}
+
+
+inline kernel::StreamSet *FindSpreadInsertLocations(PipelineBuilder P, kernel::StreamSet *mask) {
+    auto const insert = P->CreateStreamSet(2, 1);
+    P->CreateKernelCall<pablo::PabloSourceKernel>(
+        PABLO_PARSER,
+        PABLO_SOURCE,
+        "FindSpreadInsertLocations",
+        kernel::Bindings {
+            kernel::Binding {"mask", mask}
+        },
+        kernel::Bindings {
+            kernel::Binding {"insert", insert}
+        }
+    );
+    return insert;
 }
 
 

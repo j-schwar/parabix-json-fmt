@@ -36,7 +36,8 @@ int main(int argc, char **argv) {
     }
 
     auto fn = BuildPipeline(pxDriver);
+    fn(cli::InputText.c_str(), cli::InputText.length());
 
-    if (fn != nullptr)
-        fn(cli::InputText.c_str(), cli::InputText.length());
+    // Pipeline doesn't print out terminating LF so we do that here
+    std::cout << "\n";
 }

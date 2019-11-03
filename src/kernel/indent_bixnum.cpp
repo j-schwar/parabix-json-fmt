@@ -1,7 +1,3 @@
-//
-// Created by Jeremy Schwartz on 2019-11-01.
-//
-
 #include "indent_bixnum.hpp"
 
 #include <pablo/builder.hpp>
@@ -10,13 +6,15 @@
 using namespace pablo;
 
 PabloAST *atStart(PabloBuilder &pb);
+BixNum aliasBixNumVar(std::vector<Var *> const &bnv);
+void writeBixNumToVar(PabloBuilder &pb, std::vector<Var *> const &bnv, BixNum const &bn);
 BixNum advanceBixNum(PabloBuilder &pb, BixNum const &bixnum, PabloAST *cursor);
 
 namespace kernel {
 
-IndentBixNumKernel::IndentBixNumKernel(KernelBuilder b, StreamSet *poi, StreamSet *out)
+IndentBixNumKernel::IndentBixNumKernel(KernelBuilder b, StreamSet *indentData, StreamSet *out)
 : PabloKernel(b, "IndentBixNum",
-      {{"poi", poi}},
+      {{"indentData", indentData}},
       {{"out", out}},
       {})
 {}
@@ -24,47 +22,60 @@ IndentBixNumKernel::IndentBixNumKernel(KernelBuilder b, StreamSet *poi, StreamSe
 void IndentBixNumKernel::generatePabloMethod() {
     PabloBuilder pb(getEntryScope());
 
-    auto const poi = getInputStreamVar("poi");
+    auto const indentData = getInputStreamVar("indentData");
     auto const out = getOutputStreamVar("out");
-    auto const openers = pb.createExtract(poi, 0);
-    auto const closers = pb.createExtract(poi, 1);
 
-    std::vector<Var *> bixnum(BIXNUM_WIDTH);
-    for (size_t i = 0; i < bixnum.size(); ++i) {
-        bixnum[i] = pb.createVar("bixnum_" + std::to_string(i), (PabloAST *) pb.createZeroes());
+    auto const increase = pb.createExtract(indentData, 0);
+    auto const decrease = pb.createExtract(indentData, 1);
+
+    auto const cursor = pb.createVar("cursor", atStart(pb));
+    std::vector<Var *> bixnumVar(BIXNUM_WIDTH);
+    for (size_t i = 0; i < BIXNUM_WIDTH; ++i) {
+        bixnumVar[i] = pb.createVar("bixnum_" + std::to_string(i), (PabloAST *) pb.createZeroes());
     }
 
-    std::vector<PabloAST *> bn(bixnum.size());
-    for (size_t i = 0; i < bixnum.size(); ++i) {
-        bn[i] = (PabloAST *) bixnum[i];
-    }
-
-    auto cursor = pb.createVar("cursor", atStart(pb));
+    // We can't use bixnumVar in BixNum operations as we can't implicitly cast
+    // Var * to PabloAST * inside a vector so we create this pointer alias that
+    // will work.
+    auto const bixnumAlias = aliasBixNumVar(bixnumVar);
 
     auto wb = pb.createScope();
-    BixNumCompiler bnc(wb);
-    // begin while body
-    auto const addAmount = wb.createAnd(openers, cursor, "add_amount");
-    auto const subAmount = wb.createAnd(closers, cursor, "sub_amount");
-    auto const add = bnc.AddModular(bn, {addAmount});
-    auto const sub = bnc.SubModular(add, {subAmount});
-    auto const advanced = advanceBixNum(wb, sub, cursor);
-    for (size_t i = 0; i < bixnum.size(); ++i) {
-        wb.createAssign(bixnum[i], advanced[i]);
-    }
+
+    // BEGIN WHILE
+    BixNumCompiler wbnc(wb);
+    auto const inc = wb.createAnd(increase, cursor);
+    auto const dec = wb.createAnd(decrease, cursor);
+
+    // Increment/decrement BixNum.
+    auto const bnAfterInc = wbnc.AddModular(bixnumAlias, {inc});
+    auto const bnAfterDec = wbnc.SubModular(bnAfterInc, {dec});
+
+    // Advance BixNum
+    auto const bnAfterAdvance = advanceBixNum(wb, bnAfterDec, cursor);
+
+    // Write new bixnum back to var
+    writeBixNumToVar(wb, bixnumVar, bnAfterAdvance);
+
+    // Advance cursor
     auto const advancedCursor = wb.createAdvance(cursor, 1);
     wb.createAssign(cursor, wb.createInFile(advancedCursor));
-    // end while body
+    // END WHILE
 
+    // loop while cursor remains `InFile`
     pb.createWhile(cursor, wb);
 
-    BixNumCompiler outerBnc(pb);
-    auto const correctedBn = outerBnc.SubModular(bn, {openers});
-    auto const mulBn = outerBnc.MulModular(correctedBn, INDENT_WIDTH);
+    // Multiply the indentation BixNum by the number of spaces we want to
+    // insert per indentation
+    BixNumCompiler bnc(pb);
+    auto const mulBn = bnc.MulModular(bixnumAlias, INDENT_WIDTH);
 
+    // Add an extra slot for the LF character
+    auto const bixnum = bnc.AddModular(mulBn, 1);
+
+    // Write to output stream set
     for (size_t i = 0; i < bixnum.size(); ++i) {
         auto const outVar = pb.createExtract(out, i);
-        pb.createAssign(outVar, mulBn[i]);
+        pb.createAssign(outVar, bixnum[i]);
     }
 }
 
@@ -77,6 +88,21 @@ PabloAST *atStart(PabloBuilder &pb) {
     return pb.createNot(infile);
 }
 
+BixNum aliasBixNumVar(std::vector<Var *> const &bnv) {
+    auto &&cast = [](auto const &var) {
+        return reinterpret_cast<PabloAST *>(var);
+    };
+    BixNum bn;
+    bn.resize(bnv.size());
+    std::transform(bnv.begin(), bnv.end(), bn.begin(), cast);
+    return bn;
+}
+
+void writeBixNumToVar(PabloBuilder &pb, std::vector<Var *> const &bnv, BixNum const &bn) {
+    for (size_t i = 0; i < bnv.size(); ++i) {
+        pb.createAssign(bnv[i], bn[i]);
+    }
+}
 
 BixNum advanceBixNum(PabloBuilder &pb, BixNum const &bixnum, PabloAST *cursor) {
     BixNum advanced(bixnum.size());
