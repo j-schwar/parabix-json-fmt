@@ -41,24 +41,6 @@ inline kernel::StreamSet *MemorySource(PipelineBuilder P,
 }
 
 
-inline kernel::StreamSet *CompileCC(PipelineBuilder P,
-                                    llvm::StringRef ccName,
-                                    std::vector<re::CC *> const &cc,
-                                    kernel::StreamSet *basis) {
-    auto const out = P->CreateStreamSet(1, 1);
-    P->CreateKernelCall<kernel::CharacterClassKernelBuilder>(ccName, cc, basis, out);
-    return out;
-}
-
-
-inline kernel::StreamSet *CompileCC(PipelineBuilder P,
-                                    llvm::StringRef ccName,
-                                    re::CC * const cc,
-                                    kernel::StreamSet *basis) {
-    return CompileCC(P, ccName, std::vector{cc}, basis);
-}
-
-
 inline kernel::StreamSet *Lex(PipelineBuilder P, kernel::StreamSet *basis) {
     auto const out = P->CreateStreamSet(6, 1);
     P->CreateKernelCall<kernel::LexJsonKernel>(basis, out);
