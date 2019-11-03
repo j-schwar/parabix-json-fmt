@@ -4,12 +4,12 @@
 #include <tuple>
 #include <vector>
 
-#include "global.hpp"
 #include "kernel/lex_json.hpp"
 #include "kernel/indent_bixnum.hpp"
 #include "kernel/split.hpp"
 #include "kernel/analyze_json.hpp"
 #include "kernel/find_spread_insert_locations.hpp"
+#include "kernel/insert_chars.hpp"
 
 #include <kernel/pipeline/pipeline_builder.h>
 #include <kernel/io/source_kernel.h>
@@ -93,37 +93,8 @@ inline kernel::StreamSet *FindSpreadInsertLocations(PipelineBuilder P, kernel::S
 }
 
 
-inline kernel::StreamSet *InsertLF(PipelineBuilder P, kernel::StreamSet *mask, kernel::StreamSet *basis) {
+inline kernel::StreamSet *InsertChars(PipelineBuilder P, kernel::StreamSet *basis, kernel::StreamSet *insert) {
     auto const out = P->CreateStreamSet(8, 1);
-    P->CreateKernelCall<pablo::PabloSourceKernel>(
-            PABLO_PARSER,
-            PABLO_SOURCE,
-            "InsertLF",
-            kernel::Bindings {
-                    kernel::Binding {"mask", mask},
-                    kernel::Binding {"basis", basis}
-            },
-            kernel::Bindings {
-                    kernel::Binding {"out", out}
-            }
-    );
-    return out;
-}
-
-
-inline kernel::StreamSet *InsertSpace(PipelineBuilder P, kernel::StreamSet *mask, kernel::StreamSet *basis) {
-    auto const out = P->CreateStreamSet(8, 1);
-    P->CreateKernelCall<pablo::PabloSourceKernel>(
-            PABLO_PARSER,
-            PABLO_SOURCE,
-            "InsertSpace",
-            kernel::Bindings {
-                    kernel::Binding {"mask", mask},
-                    kernel::Binding {"basis", basis}
-            },
-            kernel::Bindings {
-                    kernel::Binding {"out", out}
-            }
-    );
+    P->CreateKernelCall<kernel::InsertCharsKernel>(basis, insert, out);
     return out;
 }

@@ -63,13 +63,12 @@ PipelineFunction BuildPipeline(CPUDriver &driver) {
     // Compute where to insert LF and space characters
     auto const insertLocations = FindSpreadInsertLocations(P, spreadMask);
 
-    // Insert LF then spaces into Basis
-    auto const withLF = InsertLF(P, su::Select(P, insertLocations, 0), spreadBasis);
-    auto const withSpaces = InsertSpace(P, su::Select(P, insertLocations, 1), withLF);
+    // Insert LF and spaces
+    auto const newBasis = InsertChars(P, spreadBasis, insertLocations);
 
     // Print to stdout
     StreamSet * const u8bytes = P->CreateStreamSet(1, 8);
-    P->CreateKernelCall<P2SKernel>(withSpaces, u8bytes);
+    P->CreateKernelCall<P2SKernel>(newBasis, u8bytes);
     P->CreateKernelCall<StdOutKernel>(u8bytes);
 
     return reinterpret_cast<PipelineFunction>(P->compile());
