@@ -19,7 +19,7 @@ AnalyzeJsonKernel::AnalyzeJsonKernel(KernelBuilder b,
     assert(out_lf->getFieldWidth() == 1);
     assert(out_lf->getNumElements() == 1);
     assert(out_indent->getFieldWidth() == 1);
-    assert(out_indent->getFieldWidth() == 2);
+    assert(out_indent->getNumElements() == 2);
 }
 
 void AnalyzeJsonKernel::generatePabloMethod() {
