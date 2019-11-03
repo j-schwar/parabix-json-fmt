@@ -9,6 +9,7 @@
 #include "kernel/indent_bixnum.hpp"
 #include "kernel/split.hpp"
 #include "kernel/analyze_json.hpp"
+#include "kernel/find_spread_insert_locations.hpp"
 
 #include <kernel/pipeline/pipeline_builder.h>
 #include <kernel/io/source_kernel.h>
@@ -87,17 +88,7 @@ inline std::tuple<kernel::StreamSet *, kernel::StreamSet *> AnalyzeJson(Pipeline
 
 inline kernel::StreamSet *FindSpreadInsertLocations(PipelineBuilder P, kernel::StreamSet *mask) {
     auto const insert = P->CreateStreamSet(2, 1);
-    P->CreateKernelCall<pablo::PabloSourceKernel>(
-        PABLO_PARSER,
-        PABLO_SOURCE,
-        "FindSpreadInsertLocations",
-        kernel::Bindings {
-            kernel::Binding {"mask", mask}
-        },
-        kernel::Bindings {
-            kernel::Binding {"insert", insert}
-        }
-    );
+    P->CreateKernelCall<kernel::FindSpreadInsertLocationsKernel>(mask, insert);
     return insert;
 }
 
