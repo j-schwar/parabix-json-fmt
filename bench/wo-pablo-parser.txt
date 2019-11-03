@@ -1,0 +1,55 @@
+perf stat ./json-fmt -thread-num=1 ../bench/sample.json > /dev/null
+
+ Performance counter stats for './json-fmt -thread-num=1 ../bench/sample.json':
+
+         51.653663      task-clock (msec)         #    0.992 CPUs utilized
+                 6      context-switches          #    0.116 K/sec
+                 0      cpu-migrations            #    0.000 K/sec
+             6,496      page-faults               #    0.126 M/sec
+       190,148,890      cycles                    #    3.681 GHz                      (83.50%)
+         9,712,188      stalled-cycles-frontend   #    5.11% frontend cycles idle     (84.53%)
+        39,328,737      stalled-cycles-backend    #   20.68% backend cycles idle      (84.51%)
+       211,457,739      instructions              #    1.11  insn per cycle
+                                                  #    0.19  stalled cycles per insn  (84.53%)
+        46,250,990      branches                  #  895.406 M/sec                    (84.52%)
+         1,868,935      branch-misses             #    4.04% of all branches          (78.41%)
+
+       0.052065114 seconds time elapsed
+
+
+perf stat ./json-fmt -thread-num=2 ../bench/sample.json > /dev/null
+
+ Performance counter stats for './json-fmt -thread-num=2 ../bench/sample.json':
+
+         63.548319      task-clock (msec)         #    1.001 CPUs utilized
+                 8      context-switches          #    0.126 K/sec
+                 0      cpu-migrations            #    0.000 K/sec
+            15,639      page-faults               #    0.246 M/sec
+       237,946,720      cycles                    #    3.744 GHz                      (81.14%)
+         8,920,156      stalled-cycles-frontend   #    3.75% frontend cycles idle     (81.15%)
+        73,150,951      stalled-cycles-backend    #   30.74% backend cycles idle      (80.37%)
+       235,648,079      instructions              #    0.99  insn per cycle
+                                                  #    0.31  stalled cycles per insn  (85.17%)
+        50,531,015      branches                  #  795.159 M/sec                    (87.40%)
+         1,795,398      branch-misses             #    3.55% of all branches          (84.76%)
+
+       0.063454573 seconds time elapsed
+
+
+perf stat ./json-fmt -thread-num=8 ../bench/sample.json > /dev/null
+
+ Performance counter stats for './json-fmt -thread-num=8 ../bench/sample.json':
+
+        100.284510      task-clock (msec)         #    1.060 CPUs utilized
+                41      context-switches          #    0.409 K/sec
+                 0      cpu-migrations            #    0.000 K/sec
+            43,078      page-faults               #    0.430 M/sec
+       364,239,558      cycles                    #    3.632 GHz                      (84.08%)
+         9,854,199      stalled-cycles-frontend   #    2.71% frontend cycles idle     (84.05%)
+       179,894,563      stalled-cycles-backend    #   49.39% backend cycles idle      (77.95%)
+       356,317,938      instructions              #    0.98  insn per cycle
+                                                  #    0.50  stalled cycles per insn  (84.04%)
+        74,304,120      branches                  #  740.933 M/sec                    (84.92%)
+         1,887,411      branch-misses             #    2.54% of all branches          (84.96%)
+
+       0.094605808 seconds time elapsed
