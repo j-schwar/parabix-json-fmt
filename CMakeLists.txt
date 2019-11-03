@@ -68,7 +68,8 @@ add_executable(json-fmt
         src/kernel/lex_json.hpp
         src/global.hpp
         src/kernel/indent_bixnum.cpp
-        src/kernel/indent_bixnum.hpp)
+        src/kernel/indent_bixnum.hpp
+        src/kernel/split.cpp)
 
 add_dependencies(json-fmt json-fmt-pablo)
 

@@ -7,6 +7,7 @@
 #include "global.hpp"
 #include "kernel/lex_json.hpp"
 #include "kernel/indent_bixnum.hpp"
+#include "kernel/split.hpp"
 
 #include <kernel/pipeline/pipeline_builder.h>
 #include <kernel/io/source_kernel.h>
@@ -67,17 +68,7 @@ inline kernel::StreamSet *Split(PipelineBuilder P, kernel::StreamSet *stream) {
     kernel::FilterByMask(P, stream, stream, compressed);
 
     auto const compressedSplit = P->CreateStreamSet(2, 1);
-    P->CreateKernelCall<pablo::PabloSourceKernel>(
-        PABLO_PARSER,
-        PABLO_SOURCE,
-        "Split",
-        kernel::Bindings {
-            kernel::Binding {"in", compressed}
-        },
-        kernel::Bindings {
-            kernel::Binding {"out", compressedSplit}
-        }
-    );
+    P->CreateKernelCall<kernel::SplitKernel>(compressed, compressedSplit);
 
     auto const split = P->CreateStreamSet(2, 1);
     kernel::SpreadByMask(P, stream, compressedSplit, split);
