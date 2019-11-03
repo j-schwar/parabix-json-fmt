@@ -6,8 +6,6 @@
 #include <kernel/io/stdout_kernel.h>
 #include <kernel/streamutils/pdep_kernel.h>
 #include <kernel/streamutils/stream_select.h>
-#include <kernel/streamutils/collapse.h>
-#include <kernel/util/debug_display.h>
 
 using namespace llvm;
 using namespace kernel;
