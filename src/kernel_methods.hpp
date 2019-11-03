@@ -41,6 +41,13 @@ inline kernel::StreamSet *MemorySource(PipelineBuilder P,
 }
 
 
+inline kernel::StreamSet *ReadSource(PipelineBuilder P, llvm::StringRef fdScalarName) {
+    auto const out = P->CreateStreamSet(1, 8);
+    P->CreateKernelCall<kernel::ReadSourceKernel>(P->getInputScalar(fdScalarName), out);
+    return out;
+}
+
+
 inline kernel::StreamSet *Lex(PipelineBuilder P, kernel::StreamSet *basis) {
     auto const out = P->CreateStreamSet(6, 1);
     P->CreateKernelCall<kernel::LexJsonKernel>(basis, out);

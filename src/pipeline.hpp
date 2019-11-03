@@ -4,6 +4,6 @@
 #include <pablo/parse/pablo_parser.h>
 #include <pablo/parse/source_file.h>
 
-using PipelineFunction = void(*)(const char *text, size_t length);
+using PipelineFunction = void(*)(int32_t fd);
 
 PipelineFunction BuildPipeline(CPUDriver &driver);

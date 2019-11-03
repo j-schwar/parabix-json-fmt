@@ -15,12 +15,11 @@ namespace su = streamutils;
 PipelineFunction BuildPipeline(CPUDriver &driver) {
     auto &b = driver.getBuilder();
     auto P = driver.makePipeline({
-        Binding{b->getInt8PtrTy(), "ptr"},
-        Binding{b->getSizeTy(), "len"}
+        Binding{b->getInt32Ty(), "fd"}
     });
 
     // Get input stream and compute basis bits
-    auto const inputStream = MemorySource(P, "ptr", "len");
+    auto const inputStream = ReadSource(P, "fd");
     auto const basis = S2P(P, inputStream);
 
     // Lex streams

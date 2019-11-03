@@ -7,5 +7,5 @@
 namespace cli {
     extern llvm::cl::OptionCategory Category;
 
-    extern std::string InputText;
+    extern std::string InputFile;
 }
