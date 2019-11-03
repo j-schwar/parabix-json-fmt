@@ -63,7 +63,12 @@ parabix_add_pablo_src(json-fmt-pablo "pablo/json_fmt.pablo")
 add_executable(json-fmt
         src/main.cpp
         src/cli.cpp
-        src/pipeline.cpp src/kernel/lex_json.cpp src/kernel/lex_json.hpp src/global.hpp src/kernel/indent_bixnum.cpp src/kernel/indent_bixnum.hpp)
+        src/pipeline.cpp
+        src/kernel/lex_json.cpp
+        src/kernel/lex_json.hpp
+        src/global.hpp
+        src/kernel/indent_bixnum.cpp
+        src/kernel/indent_bixnum.hpp)
 
 add_dependencies(json-fmt json-fmt-pablo)
 
