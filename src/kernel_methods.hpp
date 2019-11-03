@@ -7,6 +7,7 @@
 #include "global.hpp"
 #include "kernel/lex_json.hpp"
 #include "kernel/indent_bixnum.hpp"
+#include "cli.hpp"
 
 #include <kernel/pipeline/pipeline_builder.h>
 #include <kernel/io/source_kernel.h>
@@ -56,7 +57,7 @@ inline kernel::StreamSet *Lex(PipelineBuilder P, kernel::StreamSet *basis) {
 
 
 inline kernel::StreamSet *IndentBixNum(PipelineBuilder P, kernel::StreamSet *poi) {
-    auto const out = P->CreateStreamSet(BIXNUM_WIDTH, 1);
+    auto const out = P->CreateStreamSet(cli::BixNumWidth, 1);
     P->CreateKernelCall<kernel::IndentBixNumKernel>(poi, out);
     return out;
 }

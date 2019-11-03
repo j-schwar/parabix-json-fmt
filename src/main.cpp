@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include <llvm/Support/Host.h>
 #include <kernel/core/idisa_target.h>
 #include <kernel/pipeline/driver/cpudriver.h>
 #include <toolchain/pablo_toolchain.h>
@@ -22,11 +23,21 @@ std::shared_ptr<pablo::parse::PabloParser> PABLO_PARSER;
 std::shared_ptr<pablo::parse::SourceFile> PABLO_SOURCE;
 
 int main(int argc, char **argv) {
+    // A hack to set the default thread-num to 1 instead of the host's number
+    // of cores. This program runs significantly faster when thread-num=1 so
+    // we want this to be the default.
+    codegen::ThreadNum = 1 - llvm::sys::getHostNumPhysicalCores();
+
     codegen::ParseCommandLineOptions(argc, argv, {
         &cli::Category,
         pablo::pablo_toolchain_flags(),
         codegen::codegen_flags()
     });
+
+    if (!cli::validate()) {
+        return 1;
+    }
+    cli::computeBixNumWidth();
 
     int32_t fd = 0;
     if (!cli::InputFile.empty()) {

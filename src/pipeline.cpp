@@ -52,7 +52,7 @@ PipelineFunction BuildPipeline(CPUDriver &driver) {
     auto const filteredBixNum = IndentBixNum(P, filteredIndentData);
 
     // Spread BixNum back to the original stream size
-    auto const bixnum = P->CreateStreamSet(BIXNUM_WIDTH, 1);
+    auto const bixnum = P->CreateStreamSet(cli::BixNumWidth, 1);
     SpreadByMask(P, lfData, filteredBixNum, bixnum);
 
     // Spread basis allowing us to insert LF and space characters in the proper locations

@@ -1,5 +1,7 @@
 #include "indent_bixnum.hpp"
 
+#include "../cli.hpp"
+
 #include <pablo/builder.hpp>
 #include <pablo/bixnum/bixnum.h>
 
@@ -13,7 +15,7 @@ BixNum advanceBixNum(PabloBuilder &pb, BixNum const &bixnum, PabloAST *cursor);
 namespace kernel {
 
 IndentBixNumKernel::IndentBixNumKernel(KernelBuilder b, StreamSet *indentData, StreamSet *out)
-: PabloKernel(b, "IndentBixNum",
+: PabloKernel(b, "IndentBixNum<" + std::to_string(cli::BixNumWidth) + ", " + std::to_string(cli::TabWidth) + ">",
       {{"indentData", indentData}},
       {{"out", out}},
       {})
@@ -29,8 +31,8 @@ void IndentBixNumKernel::generatePabloMethod() {
     auto const decrease = pb.createExtract(indentData, 1);
 
     auto const cursor = pb.createVar("cursor", atStart(pb));
-    std::vector<Var *> bixnumVar(BIXNUM_WIDTH);
-    for (size_t i = 0; i < BIXNUM_WIDTH; ++i) {
+    std::vector<Var *> bixnumVar(cli::BixNumWidth);
+    for (size_t i = 0; i < (size_t) cli::BixNumWidth; ++i) {
         bixnumVar[i] = pb.createVar("bixnum_" + std::to_string(i), (PabloAST *) pb.createZeroes());
     }
 
@@ -67,7 +69,7 @@ void IndentBixNumKernel::generatePabloMethod() {
     // Multiply the indentation BixNum by the number of spaces we want to
     // insert per indentation
     BixNumCompiler bnc(pb);
-    auto const mulBn = bnc.MulModular(bixnumAlias, INDENT_WIDTH);
+    auto const mulBn = bnc.MulModular(bixnumAlias, cli::TabWidth);
 
     // Add an extra slot for the LF character
     auto const bixnum = bnc.AddModular(mulBn, 1);
