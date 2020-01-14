@@ -68,7 +68,7 @@ PipelineFunction BuildPipeline(CPUDriver &driver) {
 	    InsertSpace(P, su::Select(P, insertLocations, 1), withLF);
 
 	// Print to stdout
-	StreamSet *const u8bytes = P->CreateStreamSet(1, 8);
+	auto const u8bytes = P->CreateStreamSet(1, 8);
 	P->CreateKernelCall<P2SKernel>(withSpaces, u8bytes);
 	P->CreateKernelCall<StdOutKernel>(u8bytes);
 
