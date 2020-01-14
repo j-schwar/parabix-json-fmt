@@ -1,0 +1,6 @@
+Language: Cpp
+AccessModifierOffset: 0
+FixNamespaceComments: true
+IndentWidth: 2
+TabWidth: 2
+UseTab: ForIndentation
