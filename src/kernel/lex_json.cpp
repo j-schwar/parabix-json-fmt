@@ -1,4 +1,4 @@
-#include "lex_json.hpp"
+#include <kernel/lex_json.hpp>
 
 #include <cassert>
 

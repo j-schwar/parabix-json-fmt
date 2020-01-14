@@ -1,6 +1,6 @@
-#include "indent_bixnum.hpp"
+#include <kernel/indent_bixnum.hpp>
 
-#include "../cli.hpp"
+#include <cli.hpp>
 
 #include <pablo/bixnum/bixnum.h>
 #include <pablo/builder.hpp>

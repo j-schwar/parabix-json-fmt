@@ -11,9 +11,9 @@
 #include <toolchain/pablo_toolchain.h>
 #include <toolchain/toolchain.h>
 
-#include "cli.hpp"
-#include "global.hpp"
-#include "pipeline.hpp"
+#include <cli.hpp>
+#include <global.hpp>
+#include <pipeline.hpp>
 
 using namespace llvm;
 using namespace pablo::parse;

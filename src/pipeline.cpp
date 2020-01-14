@@ -1,4 +1,4 @@
-#include "pipeline.hpp"
+#include <pipeline.hpp>
 
 #include <kernel/basis/p2s_kernel.h>
 #include <kernel/io/source_kernel.h>
@@ -6,7 +6,7 @@
 #include <kernel/streamutils/pdep_kernel.h>
 #include <kernel/streamutils/stream_select.h>
 
-#include "kernel_methods.hpp"
+#include <kernel_methods.hpp>
 
 using namespace llvm;
 using namespace kernel;
