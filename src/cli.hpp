@@ -5,16 +5,18 @@
 #include <llvm/Support/CommandLine.h>
 
 namespace cli {
-    extern llvm::cl::OptionCategory Category;
 
-    extern std::string InputFile;
+extern llvm::cl::OptionCategory Category;
 
-    extern int32_t MaxIndentation;
+extern std::string InputFile;
 
-    extern int32_t TabWidth;
+extern int32_t MaxIndentation;
 
-    extern int32_t BixNumWidth;
+extern int32_t TabWidth;
 
-    void computeBixNumWidth();
-    bool validate();
-}
+extern int32_t BixNumWidth;
+
+void computeBixNumWidth();
+bool validate();
+
+} // namespace cli

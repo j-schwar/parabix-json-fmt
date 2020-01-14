@@ -16,12 +16,12 @@ namespace kernel {
  */
 class LexJsonKernel : public pablo::PabloKernel {
 public:
-    using KernelBuilder = const std::unique_ptr<KernelBuilder> &;
+	using KernelBuilder = const std::unique_ptr<KernelBuilder> &;
 
-    LexJsonKernel(KernelBuilder b, StreamSet *basis, StreamSet *out);
+	LexJsonKernel(KernelBuilder b, StreamSet *basis, StreamSet *out);
 
 protected:
-    void generatePabloMethod() override;
+	void generatePabloMethod() override;
 };
 
-}
+} // namespace kernel
