@@ -19,6 +19,16 @@
 
 using PipelineBuilder = std::unique_ptr<kernel::ProgramBuilder> &;
 
+/**
+ * \brief Wraps a call to Parabix's Serial To Parallel kernel.
+ *
+ * Converts a stream set of type <i8>[1] into on of type <i1>[8] by placing the
+ * ith bit of each byte in the ith stream in the resultant stream set.
+ *
+ * \param P the pipeline builder to use when constructing the kernel call.
+ * \param input the <i8>[1] stream set to convert to parallel.
+ * \return a stream set of type <i1>[8].
+ */
 inline kernel::StreamSet *S2P(PipelineBuilder P, kernel::StreamSet *input) {
 	assert(input->getFieldWidth() == 8);
 	assert(input->getNumElements() == 1);
@@ -28,15 +38,17 @@ inline kernel::StreamSet *S2P(PipelineBuilder P, kernel::StreamSet *input) {
 	return out;
 }
 
-inline kernel::StreamSet *MemorySource(PipelineBuilder P,
-                                       llvm::StringRef ptrScalarName,
-                                       llvm::StringRef sizeScalarName) {
-	auto const out = P->CreateStreamSet(1, 8);
-	P->CreateKernelCall<kernel::MemorySourceKernel>(
-	    P->getInputScalar(ptrScalarName), P->getInputScalar(sizeScalarName), out);
-	return out;
-}
-
+/**
+ * \brief Wraps a call to Parabix's Read Source kernel.
+ *
+ * Captures input from some file descriptor using the `read` system call and
+ * returns the results as a <i8>[1] stream set.
+ *
+ * \param P the pipeline builder to use when constructing the kernel call.
+ * \param fdScalarName the name of the pipeline's input scalar which holds the
+ * file descriptor value.
+ * \return A stream set of type <i8>[1].
+ */
 inline kernel::StreamSet *ReadSource(PipelineBuilder P,
                                      llvm::StringRef fdScalarName) {
 	auto const out = P->CreateStreamSet(1, 8);
@@ -45,12 +57,41 @@ inline kernel::StreamSet *ReadSource(PipelineBuilder P,
 	return out;
 }
 
+/**
+ * \brief Performs initial processing on some basis bits.
+ *
+ * Returns a stream set of type <i1>[6] with the following streams by index:
+ *
+ *  0. Positions of JSON openers (i.e., '[' and '{')
+ *  1. Positions of JSON closers (i.e., ']' and '}')
+ *  2. Positions of commas (i.e., ',')
+ *  3. Positions of colons (i.e., ':')
+ *  4. Positions of double quotes (i.e., '"')
+ *  5. A whitespace mask (i.e., any of: ' ', '\t', '\r', '\n')
+ *
+ * \param P the pipeline builder to use when constructing the kernel call.
+ * \param basis the set of basis streams (<i1>[8]) for the input source.
+ * \return A stream set of type <i1>[6].
+ */
 inline kernel::StreamSet *Lex(PipelineBuilder P, kernel::StreamSet *basis) {
 	auto const out = P->CreateStreamSet(6, 1);
 	P->CreateKernelCall<kernel::LexJsonKernel>(basis, out);
 	return out;
 }
 
+/**
+ * \brief Wraps a call to our `IndexBixNumKernel` kernel..
+ *
+ * Constructs a `BixNum` denoting the number of bits that need to be inserted to
+ * allow the correct amount of whitespace to be inserted.
+ *
+ * \param P the pipeline builder to use when constructing the kernel call.
+ * \param poi a filtered stream set containing only the points of interest
+ * needed to compute the index bixnum.
+ * \return A `BixNum`.
+ *
+ * \see kernel::IndentBixNumKernel
+ */
 inline kernel::StreamSet *IndentBixNum(PipelineBuilder P,
                                        kernel::StreamSet *poi) {
 	auto const out = P->CreateStreamSet(cli::BixNumWidth, 1);
@@ -58,6 +99,27 @@ inline kernel::StreamSet *IndentBixNum(PipelineBuilder P,
 	return out;
 }
 
+/**
+ * \brief Splits a <i1>[1] stream set into a <i1>[2] stream set where every even
+ * bit in the input stream is in the first stream of the output and every odd
+ * bit in the second.
+ *
+ * Example:
+ *
+ *     Input : 1..1...1.1.1
+ *
+ *     Output: 1......1...1
+ *           : ...1.....1..
+ *
+ * Note that this operation is quite expensive as it requires filtering and
+ * spreading the input stream in order to get the desired output. It may be
+ * necessary to see if there is other ways to get the desired output for our
+ * problem domain.
+ *
+ * \param P the pipeline builder to use when constructing the kernel call.
+ * \param stream a stream set of type <i1>[1] to split.
+ * \return A stream set of type <i1>[2].
+ */
 inline kernel::StreamSet *Split(PipelineBuilder P, kernel::StreamSet *stream) {
 	auto const compressed = P->CreateStreamSet(1, 1);
 	kernel::FilterByMask(P, stream, stream, compressed);
@@ -73,6 +135,17 @@ inline kernel::StreamSet *Split(PipelineBuilder P, kernel::StreamSet *stream) {
 	return split;
 }
 
+/**
+ * \brief Locates where to insert LF characters as well as where the indent
+ * amount should increase and decrease (e.g., opening and closing of scopes).
+ *
+ * Returns the LF insertion stream set as the first element of a tuple with the
+ * indent increment/decrement data being the second element.
+ *
+ * \param P the pipeline builder to use when constructing the kernel call.
+ * \param lex the resultant stream set of a call to `Lex`.
+ * \return A tuple of stream sets with types <i1>[1] and <i1>[2].
+ */
 inline std::tuple<kernel::StreamSet *, kernel::StreamSet *>
 AnalyzeJson(PipelineBuilder P, kernel::StreamSet *lex) {
 	auto const lfData = P->CreateStreamSet(1, 1);
@@ -85,6 +158,14 @@ AnalyzeJson(PipelineBuilder P, kernel::StreamSet *lex) {
 	return std::make_tuple(lfData, indentData);
 }
 
+/**
+ * \brief Computes where to insert LF and space characters from a spread mask.
+ * \param P the pipeline builder to use when constructing the kernel call.
+ * \param mask the spread mask used to insert the new stream positions for
+ * whitespace.
+ * \return A stream set of type <i1>[2] if LF insertion locations at index 0 and
+ * space insertion locations at index 1.
+ */
 inline kernel::StreamSet *FindSpreadInsertLocations(PipelineBuilder P,
                                                     kernel::StreamSet *mask) {
 	auto const insert = P->CreateStreamSet(2, 1);
@@ -95,6 +176,18 @@ inline kernel::StreamSet *FindSpreadInsertLocations(PipelineBuilder P,
 	return insert;
 }
 
+/**
+ * \brief Returns a modified basis stream set after setting each position marked
+ * by a given mask to a LF character.
+ *
+ * It is assumed that location marked by mask is a 0-byte in the input basis
+ * stream set.
+ *
+ * \param P the pipeline builder to use when constructing the kernel call.
+ * \param mask the locations to set to LF.
+ * \param basis the basis stream set to set LF characters in.
+ * \return A new basis stream set (<i1>[8]).
+ */
 inline kernel::StreamSet *InsertLF(PipelineBuilder P, kernel::StreamSet *mask,
                                    kernel::StreamSet *basis) {
 	auto const out = P->CreateStreamSet(8, 1);
@@ -106,6 +199,18 @@ inline kernel::StreamSet *InsertLF(PipelineBuilder P, kernel::StreamSet *mask,
 	return out;
 }
 
+/**
+ * \brief Returns a modified basis stream set after setting each position marked
+ * by a given mask to a space character.
+ *
+ * It is assumed that location marked by mask is a 0-byte in the input basis
+ * stream set.
+ *
+ * \param P the pipeline builder to use when constructing the kernel call.
+ * \param mask the locations to set to a space.
+ * \param basis the basis stream set to set space characters in.
+ * \return A new basis stream set (<i1>[8]).
+ */
 inline kernel::StreamSet *InsertSpace(PipelineBuilder P,
                                       kernel::StreamSet *mask,
                                       kernel::StreamSet *basis) {
