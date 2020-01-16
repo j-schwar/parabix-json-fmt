@@ -1,5 +1,4 @@
-.vscode/-DPARABIX_INCLUDE=/home/jeremy/projects/json-fmt/build/dep/parabix/include
--DPARABIX_LIB=/home/jeremy/projects/json-fmt/build/dep/parabix/lib
+.vscode/
 .DS_Store
 .idea/
 
