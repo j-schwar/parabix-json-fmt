@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.10)
 
 project(json-fmt)
 
-option(PARABIX_INCLUDE "Include directory for parabix framework")
-option(PARABIX_LIB "Library directory for parabix framework")
+set(PARABIX_INCLUDE CACHE PATH "Include directory for parabix framework")
+set(PARABIX_LIB CACHE PATH "Library directory for parabix framework")
 
 set(PARABIX_OBJECT_CACHE "$ENV{HOME}/.cache/parabix/")
 if (NOT EXISTS(${PARABIX_OBJECT_CACHE}))
@@ -72,6 +72,6 @@ add_executable(json-fmt
 add_dependencies(json-fmt json-fmt-pablo)
 
 target_link_libraries(json-fmt
-        parabix_framework
+        parabix
         ${Boost_LIBRARIES}
         ${REQ_LLVM_LIBRARIES})
