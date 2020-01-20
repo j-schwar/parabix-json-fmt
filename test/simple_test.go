@@ -6,7 +6,8 @@ import (
 
 func TestSimpleObject(t *testing.T) {
 	input := `{"a":"b"}`
-	expected := `{
+	expected := `
+{
   "a":"b"
 }`
 	RunTest(t, input, expected)
@@ -14,7 +15,8 @@ func TestSimpleObject(t *testing.T) {
 
 func TestSimpleArray(t *testing.T) {
 	input := `["a",2,null]`
-	expected := `[
+	expected := `
+[
   "a",
   2,
   null
