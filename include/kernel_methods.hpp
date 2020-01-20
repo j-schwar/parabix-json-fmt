@@ -17,7 +17,7 @@
 #include "kernel/indent_bixnum.hpp"
 #include "kernel/lex_json.hpp"
 
-using PipelineBuilder = std::unique_ptr<kernel::ProgramBuilder> &;
+using BuilderRef = std::unique_ptr<kernel::ProgramBuilder> &;
 
 /**
  * \brief Wraps a call to Parabix's Serial To Parallel kernel.
@@ -29,7 +29,7 @@ using PipelineBuilder = std::unique_ptr<kernel::ProgramBuilder> &;
  * \param input the <i8>[1] stream set to convert to parallel.
  * \return a stream set of type <i1>[8].
  */
-inline kernel::StreamSet *S2P(PipelineBuilder P, kernel::StreamSet *input) {
+inline kernel::StreamSet *S2P(BuilderRef P, kernel::StreamSet *input) {
 	assert(input->getFieldWidth() == 8);
 	assert(input->getNumElements() == 1);
 
@@ -49,7 +49,7 @@ inline kernel::StreamSet *S2P(PipelineBuilder P, kernel::StreamSet *input) {
  * file descriptor value.
  * \return A stream set of type <i8>[1].
  */
-inline kernel::StreamSet *ReadSource(PipelineBuilder P,
+inline kernel::StreamSet *ReadSource(BuilderRef P,
                                      llvm::StringRef fdScalarName) {
 	auto const out = P->CreateStreamSet(1, 8);
 	P->CreateKernelCall<kernel::ReadSourceKernel>(P->getInputScalar(fdScalarName),
@@ -73,7 +73,7 @@ inline kernel::StreamSet *ReadSource(PipelineBuilder P,
  * \param basis the set of basis streams (<i1>[8]) for the input source.
  * \return A stream set of type <i1>[6].
  */
-inline kernel::StreamSet *Lex(PipelineBuilder P, kernel::StreamSet *basis) {
+inline kernel::StreamSet *Lex(BuilderRef P, kernel::StreamSet *basis) {
 	auto const out = P->CreateStreamSet(6, 1);
 	P->CreateKernelCall<kernel::LexJsonKernel>(basis, out);
 	return out;
@@ -92,7 +92,7 @@ inline kernel::StreamSet *Lex(PipelineBuilder P, kernel::StreamSet *basis) {
  *
  * \see kernel::IndentBixNumKernel
  */
-inline kernel::StreamSet *IndentBixNum(PipelineBuilder P,
+inline kernel::StreamSet *IndentBixNum(BuilderRef P,
                                        kernel::StreamSet *poi) {
 	auto const out = P->CreateStreamSet(cli::BixNumWidth, 1);
 	P->CreateKernelCall<kernel::IndentBixNumKernel>(poi, out);
@@ -120,7 +120,7 @@ inline kernel::StreamSet *IndentBixNum(PipelineBuilder P,
  * \param stream a stream set of type <i1>[1] to split.
  * \return A stream set of type <i1>[2].
  */
-inline kernel::StreamSet *Split(PipelineBuilder P, kernel::StreamSet *stream) {
+inline kernel::StreamSet *Split(BuilderRef P, kernel::StreamSet *stream) {
 	auto const compressed = P->CreateStreamSet(1, 1);
 	kernel::FilterByMask(P, stream, stream, compressed);
 
@@ -147,7 +147,7 @@ inline kernel::StreamSet *Split(PipelineBuilder P, kernel::StreamSet *stream) {
  * \return A tuple of stream sets with types <i1>[1] and <i1>[2].
  */
 inline std::tuple<kernel::StreamSet *, kernel::StreamSet *>
-AnalyzeJson(PipelineBuilder P, kernel::StreamSet *lex) {
+AnalyzeJson(BuilderRef P, kernel::StreamSet *lex) {
 	auto const lfData = P->CreateStreamSet(1, 1);
 	auto const indentData = P->CreateStreamSet(2, 1);
 	P->CreateKernelCall<pablo::PabloSourceKernel>(
@@ -166,7 +166,7 @@ AnalyzeJson(PipelineBuilder P, kernel::StreamSet *lex) {
  * \return A stream set of type <i1>[2] if LF insertion locations at index 0 and
  * space insertion locations at index 1.
  */
-inline kernel::StreamSet *FindSpreadInsertLocations(PipelineBuilder P,
+inline kernel::StreamSet *FindSpreadInsertLocations(BuilderRef P,
                                                     kernel::StreamSet *mask) {
 	auto const insert = P->CreateStreamSet(2, 1);
 	P->CreateKernelCall<pablo::PabloSourceKernel>(
@@ -188,7 +188,7 @@ inline kernel::StreamSet *FindSpreadInsertLocations(PipelineBuilder P,
  * \param basis the basis stream set to set LF characters in.
  * \return A new basis stream set (<i1>[8]).
  */
-inline kernel::StreamSet *InsertLF(PipelineBuilder P, kernel::StreamSet *mask,
+inline kernel::StreamSet *InsertLF(BuilderRef P, kernel::StreamSet *mask,
                                    kernel::StreamSet *basis) {
 	auto const out = P->CreateStreamSet(8, 1);
 	P->CreateKernelCall<pablo::PabloSourceKernel>(
@@ -211,7 +211,7 @@ inline kernel::StreamSet *InsertLF(PipelineBuilder P, kernel::StreamSet *mask,
  * \param basis the basis stream set to set space characters in.
  * \return A new basis stream set (<i1>[8]).
  */
-inline kernel::StreamSet *InsertSpace(PipelineBuilder P,
+inline kernel::StreamSet *InsertSpace(BuilderRef P,
                                       kernel::StreamSet *mask,
                                       kernel::StreamSet *basis) {
 	auto const out = P->CreateStreamSet(8, 1);
