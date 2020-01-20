@@ -1,7 +1,6 @@
 package testsuite
 
 import (
-	"fmt"
 	"io"
 	"os/exec"
 	"strings"
@@ -40,7 +39,6 @@ func ExpectEq(t *testing.T, expected, actual string) {
 	if e != a {
 		dmp := diffmatchpatch.New()
 		diffs := dmp.DiffMain(a, e, true)
-		fmt.Println(diffs)
 		t.Errorf(format, e, a, dmp.DiffPrettyText(diffs))
 	}
 }
