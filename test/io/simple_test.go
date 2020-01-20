@@ -1,7 +1,9 @@
-package testsuite
+package io
 
 import (
 	"testing"
+
+	"github.com/j-schwar/parabix-json-fmt/testsuite"
 )
 
 func TestSimpleObject(t *testing.T) {
@@ -10,7 +12,7 @@ func TestSimpleObject(t *testing.T) {
 {
   "a":"b"
 }`
-	RunTest(t, input, expected)
+	testsuite.RunTest(t, input, expected)
 }
 
 func TestSimpleArray(t *testing.T) {
@@ -21,5 +23,5 @@ func TestSimpleArray(t *testing.T) {
   2,
   null
 ]`
-	RunTest(t, input, expected)
+	testsuite.RunTest(t, input, expected)
 }

@@ -1,6 +1,7 @@
 package testsuite
 
 import (
+	"flag"
 	"io"
 	"os/exec"
 	"strings"
@@ -15,8 +16,13 @@ import (
 // its standard output and standard error devices are returned as strings along
 // with an error if one occurred.
 func Run(input io.Reader, args ...string) (string, string, error) {
+	exeDir := flag.Arg(0)
+	if exeDir == "" {
+		panic("no executable directory supplied")
+	}
+
 	cmd := exec.Command("json-fmt", args...)
-	cmd.Dir = "../build"
+	cmd.Dir = exeDir
 	cmd.Stdin = input
 	stdout := new(strings.Builder)
 	cmd.Stdout = stdout
@@ -30,12 +36,12 @@ func Run(input io.Reader, args ...string) (string, string, error) {
 // with the testing framework if they are not.
 func ExpectEq(t *testing.T, expected, actual string) {
 	format := "\n==== Expected ====\n%v\n==================\n\n" +
-		"====  Actual  ====\n%v\n==================\n\n====   Diff   ====\n%v\n"
+		"====  Actual  ====\n%v\n==================\n\n====   Diff   ====\n%v\n==================\n"
 
 	// Don't care about leading linebreaks so we'll trim them out.
 	e := strings.Trim(expected, "\n")
 	a := strings.Trim(actual, "\n")
-	
+
 	if e != a {
 		dmp := diffmatchpatch.New()
 		diffs := dmp.DiffMain(a, e, true)

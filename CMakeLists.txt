@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.10)
 
 project(json-fmt)
 
+enable_testing()
+
 set(PARABIX_INCLUDE CACHE PATH "Include directory for parabix framework")
 set(PARABIX_LIB CACHE PATH "Library directory for parabix framework")
 
@@ -75,3 +77,19 @@ target_link_libraries(json-fmt
         parabix
         ${Boost_LIBRARIES}
         ${REQ_LLVM_LIBRARIES})
+
+
+# ==== Tests ==== #
+
+set(TEST_PACKAGE "github.com/j-schwar/parabix-json-fmt/testsuite")
+set(TEST_DIR ${PROJECT_SOURCE_DIR}/test)
+set(BUILD_DIR ${PROJECT_SOURCE_DIR}/build)
+
+add_test(
+    NAME io
+    WORKING_DIRECTORY ${TEST_DIR}
+    COMMAND go test ${TEST_PACKAGE}/io -args ${BUILD_DIR})
+
+add_custom_target(check
+    COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
+    DEPENDS json-fmt)
