@@ -1,7 +1,6 @@
 #pragma once
 
 #include <memory>
-
 #include <pablo/parse/pablo_parser.h>
 #include <pablo/parse/source_file.h>
 

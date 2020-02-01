@@ -1,8 +1,7 @@
 #pragma once
 
-#include <string>
-
 #include <llvm/Support/CommandLine.h>
+#include <string>
 
 namespace cli {
 

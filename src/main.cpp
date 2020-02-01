@@ -1,19 +1,17 @@
+#include <cli.hpp>
 #include <fcntl.h>
+#include <global.hpp>
 #include <iostream>
-#include <sys/stat.h>
-
 #include <kernel/core/idisa_target.h>
 #include <kernel/pipeline/driver/cpudriver.h>
 #include <llvm/Support/Host.h>
 #include <pablo/parse/error.h>
 #include <pablo/parse/rd_parser.h>
 #include <pablo/parse/simple_lexer.h>
+#include <pipeline.hpp>
+#include <sys/stat.h>
 #include <toolchain/pablo_toolchain.h>
 #include <toolchain/toolchain.h>
-
-#include <cli.hpp>
-#include <global.hpp>
-#include <pipeline.hpp>
 
 using namespace llvm;
 using namespace pablo::parse;
@@ -23,7 +21,8 @@ std::shared_ptr<pablo::parse::PabloParser> PABLO_PARSER;
 std::shared_ptr<pablo::parse::SourceFile> PABLO_SOURCE;
 
 int main(int argc, char **argv) {
-	codegen::ParseCommandLineOptions(argc, argv,
+	codegen::ParseCommandLineOptions(argc,
+	                                 argv,
 	                                 {&cli::Category,
 	                                  pablo::pablo_toolchain_flags(),
 	                                  codegen::codegen_flags()});
@@ -55,7 +54,7 @@ int main(int argc, char **argv) {
 	}
 
 	CPUDriver pxDriver("json-fmt");
-	auto em = pablo::parse::ErrorManager::Create();
+	auto em      = pablo::parse::ErrorManager::Create();
 	PABLO_PARSER = RecursiveParser::Create(SimpleLexer::Create(em), em);
 	PABLO_SOURCE = SourceFile::Relative("json_fmt.pablo");
 	if (PABLO_SOURCE == nullptr) {

@@ -1,12 +1,10 @@
-#include <pipeline.hpp>
-
 #include <kernel/basis/p2s_kernel.h>
 #include <kernel/io/source_kernel.h>
 #include <kernel/io/stdout_kernel.h>
 #include <kernel/streamutils/pdep_kernel.h>
 #include <kernel/streamutils/stream_select.h>
-
 #include <kernel_methods.hpp>
+#include <pipeline.hpp>
 
 using namespace llvm;
 using namespace kernel;
@@ -15,15 +13,15 @@ namespace su = streamutils;
 
 PipelineFunction BuildPipeline(CPUDriver &driver) {
 	auto &b = driver.getBuilder();
-	auto P = driver.makePipeline({Binding{b->getInt32Ty(), "fd"}});
+	auto P  = driver.makePipeline({Binding{b->getInt32Ty(), "fd"}});
 
 	// Get input stream and compute basis bits
 	auto const inputStream = ReadSource(P, "fd");
-	auto const basis = S2P(P, inputStream);
+	auto const basis       = S2P(P, inputStream);
 
 	// Lex streams
-	auto const partialLex = Lex(P, basis);
-	auto const quotes = su::Select(P, partialLex, 4);
+	auto const partialLex  = Lex(P, basis);
+	auto const quotes      = su::Select(P, partialLex, 4);
 	auto const splitQuotes = Split(P, quotes);
 
 	// lex consists of:
@@ -34,9 +32,10 @@ PipelineFunction BuildPipeline(CPUDriver &driver) {
 	//  [4] Opening Quotes
 	//  [5] Closing Quotes
 	//  [6] Whitespace
-	auto const lex = su::Select(P, {{partialLex, su::Range(0, 4)},
-	                                {splitQuotes, su::Range(0, 2)},
-	                                {partialLex, {5}}});
+	auto const lex = su::Select(P,
+	                            {{partialLex, su::Range(0, 4)},
+	                             {splitQuotes, su::Range(0, 2)},
+	                             {partialLex, {5}}});
 
 	// Find locations to insert LF and increment/decrement indent
 	auto const [lfData, indentData] = AnalyzeJson(P, lex);
@@ -54,7 +53,7 @@ PipelineFunction BuildPipeline(CPUDriver &driver) {
 
 	// Spread basis allowing us to insert LF and space characters in the proper
 	// locations
-	auto const spreadMask = InsertionSpreadMask(P, bixnum);
+	auto const spreadMask  = InsertionSpreadMask(P, bixnum);
 	auto const spreadBasis = P->CreateStreamSet(8, 1);
 	SpreadByMask(P, spreadMask, basis, spreadBasis);
 

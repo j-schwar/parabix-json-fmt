@@ -1,7 +1,5 @@
-#include <kernel/indent_bixnum.hpp>
-
 #include <cli.hpp>
-
+#include <kernel/indent_bixnum.hpp>
 #include <pablo/bixnum/bixnum.h>
 #include <pablo/builder.hpp>
 
@@ -9,33 +7,37 @@ using namespace pablo;
 
 PabloAST *atStart(PabloBuilder &pb);
 BixNum aliasBixNumVar(std::vector<Var *> const &bnv);
-void writeBixNumToVar(PabloBuilder &pb, std::vector<Var *> const &bnv,
+void writeBixNumToVar(PabloBuilder &pb,
+                      std::vector<Var *> const &bnv,
                       BixNum const &bn);
 BixNum advanceBixNum(PabloBuilder &pb, BixNum const &bixnum, PabloAST *cursor);
 
 namespace kernel {
 
-IndentBixNumKernel::IndentBixNumKernel(KernelBuilder b, StreamSet *indentData,
+IndentBixNumKernel::IndentBixNumKernel(KernelBuilder b,
+                                       StreamSet *indentData,
                                        StreamSet *out)
-    : PabloKernel(b,
-                  "IndentBixNum<" + std::to_string(cli::BixNumWidth) + ", " +
-                      std::to_string(cli::TabWidth) + ">",
-                  {{"indentData", indentData}}, {{"out", out}}, {}) {}
+: PabloKernel(b,
+              "IndentBixNum<" + std::to_string(cli::BixNumWidth) + ", " +
+                  std::to_string(cli::TabWidth) + ">",
+              {{"indentData", indentData}},
+              {{"out", out}},
+              {}) {}
 
 void IndentBixNumKernel::generatePabloMethod() {
 	PabloBuilder pb(getEntryScope());
 
 	auto const indentData = getInputStreamVar("indentData");
-	auto const out = getOutputStreamVar("out");
+	auto const out        = getOutputStreamVar("out");
 
 	auto const increase = pb.createExtract(indentData, 0);
 	auto const decrease = pb.createExtract(indentData, 1);
 
 	auto const cursor = pb.createVar("cursor", atStart(pb));
 	std::vector<Var *> bixnumVar(cli::BixNumWidth);
-	for (size_t i = 0; i < (size_t)cli::BixNumWidth; ++i) {
+	for (size_t i = 0; i < (size_t) cli::BixNumWidth; ++i) {
 		bixnumVar[i] = pb.createVar("bixnum_" + std::to_string(i),
-		                            (PabloAST *)pb.createZeroes());
+		                            (PabloAST *) pb.createZeroes());
 	}
 
 	// We can't use bixnumVar in BixNum operations as we can't implicitly cast
@@ -86,9 +88,9 @@ void IndentBixNumKernel::generatePabloMethod() {
 } // namespace kernel
 
 PabloAST *atStart(PabloBuilder &pb) {
-	auto const ones = (PabloAST *)pb.createOnes();
+	auto const ones     = (PabloAST *) pb.createOnes();
 	auto const advanced = pb.createAdvance(ones, 1);
-	auto const infile = pb.createInFile(advanced);
+	auto const infile   = pb.createInFile(advanced);
 	return pb.createNot(infile);
 }
 
@@ -102,7 +104,8 @@ BixNum aliasBixNumVar(std::vector<Var *> const &bnv) {
 	return bn;
 }
 
-void writeBixNumToVar(PabloBuilder &pb, std::vector<Var *> const &bnv,
+void writeBixNumToVar(PabloBuilder &pb,
+                      std::vector<Var *> const &bnv,
                       BixNum const &bn) {
 	for (size_t i = 0; i < bnv.size(); ++i) {
 		pb.createAssign(bnv[i], bn[i]);
@@ -112,9 +115,9 @@ void writeBixNumToVar(PabloBuilder &pb, std::vector<Var *> const &bnv,
 BixNum advanceBixNum(PabloBuilder &pb, BixNum const &bixnum, PabloAST *cursor) {
 	BixNum advanced(bixnum.size());
 	for (size_t i = 0; i < bixnum.size(); ++i) {
-		auto const masked = pb.createAnd(cursor, bixnum[i]);
+		auto const masked       = pb.createAnd(cursor, bixnum[i]);
 		auto const advancedMask = pb.createAdvance(masked, 1);
-		advanced[i] = pb.createOr(advancedMask, bixnum[i]);
+		advanced[i]             = pb.createOr(advancedMask, bixnum[i]);
 	}
 	return advanced;
 }

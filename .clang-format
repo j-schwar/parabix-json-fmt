@@ -1,6 +1,16 @@
 Language: Cpp
 AccessModifierOffset: -2
+AlignConsecutiveAssignments: true
+AlignTrailingComments: true
+BinPackArguments: false
+BinPackParameters: false
+BreakBeforeTernaryOperators: true
+BreakInheritanceList: BeforeComma
+ConstructorInitializerIndentWidth: 0
 FixNamespaceComments: true
+IncludeBlocks: Merge
 IndentWidth: 2
+IndentWrappedFunctionNames: false
+SpaceAfterCStyleCast: true
 TabWidth: 2
 UseTab: ForIndentation

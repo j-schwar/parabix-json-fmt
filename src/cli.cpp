@@ -1,8 +1,7 @@
 #include <iostream>
-
 #include <llvm/Support/CommandLine.h>
 
-#define IS_POW_2(i) (((i) > 0) && (((i) & ((i)-1)) == 0))
+#define IS_POW_2(i) (((i) > 0) && (((i) & ((i) -1)) == 0))
 
 using namespace llvm;
 
@@ -26,9 +25,9 @@ bool validate() {
 		return false;
 	}
 
-	const int32_t MAX_INDENTATION = 512; // larger values degrade performance
+	const int32_t MAX_INDENTATION  = 512; // larger values degrade performance
 	auto const validMaxIndentation = (MaxIndentation >= TabWidth) &&
-	                                 IS_POW_2((uint32_t)MaxIndentation) &&
+	                                 IS_POW_2((uint32_t) MaxIndentation) &&
 	                                 (MaxIndentation <= MAX_INDENTATION);
 	if (!validMaxIndentation) {
 		std::cerr
@@ -42,7 +41,7 @@ bool validate() {
 
 void computeBixNumWidth() {
 	int32_t i = 0;
-	auto x = (uint32_t)cli::MaxIndentation;
+	auto x    = (uint32_t) cli::MaxIndentation;
 	while (x != 0) {
 		x = x >> 1U;
 		i++;
@@ -57,19 +56,29 @@ void computeBixNumWidth() {
 } // namespace cli
 
 static cl::opt<std::string, true> InputTextOpt( // NOLINT(cert-err58-cpp)
-    cl::Positional, cl::location(cli::InputFile), cl::desc("json file"),
-    cl::cat(cli::Category), cl::init(""));
+    cl::Positional,
+    cl::location(cli::InputFile),
+    cl::desc("json file"),
+    cl::cat(cli::Category),
+    cl::init(""));
 
 static cl::opt<int32_t, true> MaxIndentation( // NOLINT(cert-err58-cpp)
-    "max-indent", cl::location(cli::MaxIndentation),
+    "max-indent",
+    cl::location(cli::MaxIndentation),
     cl::desc("The maximum indentation level. (default 128)"),
-    cl::cat(cli::Category), cl::init(128));
+    cl::cat(cli::Category),
+    cl::init(128));
 
 static cl::opt<int32_t, true> TabWidth( // NOLINT(cert-err58-cpp)
-    "tab-width", cl::location(cli::TabWidth),
+    "tab-width",
+    cl::location(cli::TabWidth),
     cl::desc("The width of indentation. [1-8] (default 2)"),
-    cl::cat(cli::Category), cl::init(2));
+    cl::cat(cli::Category),
+    cl::init(2));
 
 static cl::alias TabWidthAlias( // NOLINT(cert-err58-cpp)
-    "t", cl::desc("Alias for tab-width"), cl::aliasopt(TabWidth),
-    cl::cat(cli::Category), cl::NotHidden);
+    "t",
+    cl::desc("Alias for tab-width"),
+    cl::aliasopt(TabWidth),
+    cl::cat(cli::Category),
+    cl::NotHidden);

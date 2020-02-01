@@ -1,9 +1,10 @@
 #pragma once
 
+#include "cli.hpp"
+#include "global.hpp"
+#include "kernel/indent_bixnum.hpp"
+#include "kernel/lex_json.hpp"
 #include <cassert>
-#include <tuple>
-#include <vector>
-
 #include <kernel/basis/s2p_kernel.h>
 #include <kernel/io/source_kernel.h>
 #include <kernel/pipeline/pipeline_builder.h>
@@ -11,11 +12,8 @@
 #include <kernel/streamutils/pdep_kernel.h>
 #include <re/adt/re_cc.h>
 #include <re/cc/cc_kernel.h>
-
-#include "cli.hpp"
-#include "global.hpp"
-#include "kernel/indent_bixnum.hpp"
-#include "kernel/lex_json.hpp"
+#include <tuple>
+#include <vector>
 
 using BuilderRef = std::unique_ptr<kernel::ProgramBuilder> &;
 
@@ -92,8 +90,7 @@ inline kernel::StreamSet *Lex(BuilderRef P, kernel::StreamSet *basis) {
  *
  * \see kernel::IndentBixNumKernel
  */
-inline kernel::StreamSet *IndentBixNum(BuilderRef P,
-                                       kernel::StreamSet *poi) {
+inline kernel::StreamSet *IndentBixNum(BuilderRef P, kernel::StreamSet *poi) {
 	auto const out = P->CreateStreamSet(cli::BixNumWidth, 1);
 	P->CreateKernelCall<kernel::IndentBixNumKernel>(poi, out);
 	return out;
@@ -126,7 +123,9 @@ inline kernel::StreamSet *Split(BuilderRef P, kernel::StreamSet *stream) {
 
 	auto const compressedSplit = P->CreateStreamSet(2, 1);
 	P->CreateKernelCall<pablo::PabloSourceKernel>(
-	    PABLO_PARSER, PABLO_SOURCE, "Split",
+	    PABLO_PARSER,
+	    PABLO_SOURCE,
+	    "Split",
 	    kernel::Bindings{kernel::Binding{"in", compressed}},
 	    kernel::Bindings{kernel::Binding{"out", compressedSplit}});
 
@@ -148,10 +147,12 @@ inline kernel::StreamSet *Split(BuilderRef P, kernel::StreamSet *stream) {
  */
 inline std::tuple<kernel::StreamSet *, kernel::StreamSet *>
 AnalyzeJson(BuilderRef P, kernel::StreamSet *lex) {
-	auto const lfData = P->CreateStreamSet(1, 1);
+	auto const lfData     = P->CreateStreamSet(1, 1);
 	auto const indentData = P->CreateStreamSet(2, 1);
 	P->CreateKernelCall<pablo::PabloSourceKernel>(
-	    PABLO_PARSER, PABLO_SOURCE, "AnalyzeJson",
+	    PABLO_PARSER,
+	    PABLO_SOURCE,
+	    "AnalyzeJson",
 	    kernel::Bindings{kernel::Binding{"lex", lex}},
 	    kernel::Bindings{kernel::Binding{"lf", lfData},
 	                     kernel::Binding{"indent", indentData}});
@@ -170,7 +171,9 @@ inline kernel::StreamSet *FindSpreadInsertLocations(BuilderRef P,
                                                     kernel::StreamSet *mask) {
 	auto const insert = P->CreateStreamSet(2, 1);
 	P->CreateKernelCall<pablo::PabloSourceKernel>(
-	    PABLO_PARSER, PABLO_SOURCE, "FindSpreadInsertLocations",
+	    PABLO_PARSER,
+	    PABLO_SOURCE,
+	    "FindSpreadInsertLocations",
 	    kernel::Bindings{kernel::Binding{"mask", mask}},
 	    kernel::Bindings{kernel::Binding{"insert", insert}});
 	return insert;
@@ -188,11 +191,13 @@ inline kernel::StreamSet *FindSpreadInsertLocations(BuilderRef P,
  * \param basis the basis stream set to set LF characters in.
  * \return A new basis stream set (<i1>[8]).
  */
-inline kernel::StreamSet *InsertLF(BuilderRef P, kernel::StreamSet *mask,
-                                   kernel::StreamSet *basis) {
+inline kernel::StreamSet *
+InsertLF(BuilderRef P, kernel::StreamSet *mask, kernel::StreamSet *basis) {
 	auto const out = P->CreateStreamSet(8, 1);
 	P->CreateKernelCall<pablo::PabloSourceKernel>(
-	    PABLO_PARSER, PABLO_SOURCE, "InsertLF",
+	    PABLO_PARSER,
+	    PABLO_SOURCE,
+	    "InsertLF",
 	    kernel::Bindings{kernel::Binding{"mask", mask},
 	                     kernel::Binding{"basis", basis}},
 	    kernel::Bindings{kernel::Binding{"out", out}});
@@ -211,12 +216,13 @@ inline kernel::StreamSet *InsertLF(BuilderRef P, kernel::StreamSet *mask,
  * \param basis the basis stream set to set space characters in.
  * \return A new basis stream set (<i1>[8]).
  */
-inline kernel::StreamSet *InsertSpace(BuilderRef P,
-                                      kernel::StreamSet *mask,
-                                      kernel::StreamSet *basis) {
+inline kernel::StreamSet *
+InsertSpace(BuilderRef P, kernel::StreamSet *mask, kernel::StreamSet *basis) {
 	auto const out = P->CreateStreamSet(8, 1);
 	P->CreateKernelCall<pablo::PabloSourceKernel>(
-	    PABLO_PARSER, PABLO_SOURCE, "InsertSpace",
+	    PABLO_PARSER,
+	    PABLO_SOURCE,
+	    "InsertSpace",
 	    kernel::Bindings{kernel::Binding{"mask", mask},
 	                     kernel::Binding{"basis", basis}},
 	    kernel::Bindings{kernel::Binding{"out", out}});
